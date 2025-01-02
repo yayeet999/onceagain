@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Sparkles, ShieldCheck, AlertTriangle, Plus } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { TraitCard } from "./TraitCard"
 import { AddTraitDialog } from "./AddTraitDialog"
 import { Progress } from "@/components/ui/progress"

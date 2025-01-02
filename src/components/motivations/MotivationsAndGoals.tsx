@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Trophy, Crown, BookOpen, Scale, Heart, Target, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface Goal {
   id: string;

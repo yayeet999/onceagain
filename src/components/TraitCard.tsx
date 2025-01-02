@@ -15,7 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 
 interface Trait {
