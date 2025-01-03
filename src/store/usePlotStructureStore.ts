@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type PlotStructureType = 
   | 'three-act'
@@ -14,16 +14,19 @@ export type PlotStructureType =
 interface PlotStructureState {
   selectedStructure: PlotStructureType | null;
   isDetailsOpen: boolean;
+  isDirty: boolean;
+
   setSelectedStructure: (structure: PlotStructureType) => void;
   openDetails: () => void;
   closeDetails: () => void;
-  reset: () => void;
   canContinue: () => boolean;
+  resetStore: () => void;
 }
 
 const initialState = {
   selectedStructure: null,
   isDetailsOpen: false,
+  isDirty: false,
 };
 
 export const usePlotStructureStore = create<PlotStructureState>()(
@@ -31,29 +34,28 @@ export const usePlotStructureStore = create<PlotStructureState>()(
     (set, get) => ({
       ...initialState,
 
-      setSelectedStructure: (structure) => {
-        set({ selectedStructure: structure });
-      },
+      setSelectedStructure: (structure) =>
+        set({
+          selectedStructure: structure,
+          isDirty: true,
+        }),
 
-      openDetails: () => {
-        set({ isDetailsOpen: true });
-      },
+      openDetails: () =>
+        set({ isDetailsOpen: true }),
 
-      closeDetails: () => {
-        set({ isDetailsOpen: false });
-      },
-
-      reset: () => {
-        set(initialState);
-      },
+      closeDetails: () =>
+        set({ isDetailsOpen: false }),
 
       canContinue: () => {
         const state = get();
-        return state.selectedStructure !== null;
+        return !!state.selectedStructure;
       },
+
+      resetStore: () => set(initialState),
     }),
     {
-      name: 'plot-structure-storage',
+      name: 'novel-plot-structure-storage',
+      storage: createJSONStorage(() => localStorage),
     }
   )
 ); 
