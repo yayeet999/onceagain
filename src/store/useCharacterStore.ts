@@ -92,6 +92,7 @@ interface CharacterState {
   // State Management
   markCharacterComplete: (slotNumber: number) => void;
   resetCharacters: () => void;
+  markClean: () => void;
 }
 
 const initialState = {
@@ -277,6 +278,8 @@ export const useCharacterStore = create<CharacterState>()(
           },
           isDirty: true,
         })),
+
+      markClean: () => set({ isDirty: false }),
 
       resetCharacters: () => set(initialState),
     }),

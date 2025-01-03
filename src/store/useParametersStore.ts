@@ -57,9 +57,10 @@ interface ParametersState {
   
   // State Management
   resetParameters: () => void;
+  markClean: () => void;
 }
 
-const initialState: Omit<ParametersState, keyof { addParameter: any, updateParameter: any, removeParameter: any, setActiveParameter: any, addRule: any, removeRule: any, addLimitation: any, removeLimitation: any, addConsequence: any, removeConsequence: any, addInteraction: any, removeInteraction: any, reorderCategories: any, resetParameters: any }> = {
+const initialState: Omit<ParametersState, keyof { addParameter: any, updateParameter: any, removeParameter: any, setActiveParameter: any, addRule: any, removeRule: any, addLimitation: any, removeLimitation: any, addConsequence: any, removeConsequence: any, addInteraction: any, removeInteraction: any, reorderCategories: any, resetParameters: any, markClean: any }> = {
   parameters: {},
   activeParameter: null,
   categoryOrder: ['magic', 'technology', 'society', 'environment', 'politics', 'economy', 'custom'] as ParameterCategory[],
@@ -244,6 +245,8 @@ export const useParametersStore = create<ParametersState>()(
           categoryOrder: newOrder,
           isDirty: true,
         })),
+
+      markClean: () => set({ isDirty: false }),
 
       resetParameters: () => set(initialState),
     }),

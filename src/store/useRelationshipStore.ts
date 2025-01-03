@@ -36,6 +36,8 @@ interface RelationshipState {
   updateRelationship: (id: string, data: Partial<Relationship>) => void;
   removeRelationship: (id: string) => void;
   setActiveRelationship: (id: string | null) => void;
+  resetRelationships: () => void;
+  markClean: () => void;
   
   // Dynamics Management
   addDynamic: (relationshipId: string, dynamic: string) => void;
@@ -44,9 +46,6 @@ interface RelationshipState {
   // Conflict Management
   addConflict: (relationshipId: string, conflict: string) => void;
   removeConflict: (relationshipId: string, conflict: string) => void;
-  
-  // State Management
-  resetRelationships: () => void;
 }
 
 const initialState = {
@@ -148,6 +147,8 @@ export const useRelationshipStore = create<RelationshipState>()(
           },
           isDirty: true,
         })),
+
+      markClean: () => set({ isDirty: false }),
 
       resetRelationships: () => set(initialState),
     }),

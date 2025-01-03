@@ -68,6 +68,7 @@ interface TimelineState {
   
   // State Management
   resetTimeline: () => void;
+  markClean: () => void;
 }
 
 const initialState = {
@@ -242,6 +243,8 @@ export const useTimelineStore = create<TimelineState>()(
           },
           isDirty: true,
         })),
+
+      markClean: () => set({ isDirty: false }),
 
       resetTimeline: () => set(initialState),
     }),
