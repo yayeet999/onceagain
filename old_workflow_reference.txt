@@ -1,0 +1,444 @@
+OLD WORKFLOW FILES REFERENCE
+============================
+
+This file contains the old workflow files that were previously located in /dashboard/novels.
+These files are kept for reference but are no longer actively used in the application.
+
+Directory Structure:
+/dashboard/novels/
+  ├── page.tsx
+  ├── create/
+  │   ├── page.tsx
+  │   ├── setting/
+  │   ├── relationships/
+  │   ├── parameters/
+  │   ├── characters/
+  │   ├── cultural/
+  │   ├── timeline/
+  │   ├── details/
+  │   └── genre/
+  └── workflow/
+
+Original file contents below:
+----------------------------
+
+/dashboard/novels/page.tsx:
+```typescript
+'use client';
+
+import React from 'react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+  BookOpen,
+  ChevronRight,
+  Sparkles,
+  Lightbulb,
+  BookMarked,
+  Wand2,
+  Brain,
+  Target,
+  Compass,
+  Palette,
+  Layers,
+  Plus,
+  Pen,
+  Workflow,
+  Zap,
+  Book,
+} from 'lucide-react';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+
+export default function NovelWorkshopPage() {
+  const router = useRouter();
+
+  return (
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900/90">
+        <div className="px-6 lg:px-8 py-8">
+          <div className="max-w-7xl mx-auto space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Link
+                href="/dashboard/novels/create"
+                className="block overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 shadow-xl group"
+              >
+                <div className="relative p-8">
+                  <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
+                  <div className="relative space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm">
+                        <Book className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">Create Your Novel</h2>
+                        <p className="text-slate-300">Begin your creative journey with AI assistance</p>
+                      </div>
+                    </div>
+                    <p className="text-slate-300 max-w-2xl">
+                      Start crafting your novel with our AI-powered writing tools. Set up your novel's structure,
+                      develop your world and characters, and let your creativity flow.
+                    </p>
+                    <div className="flex justify-end">
+                      <motion.div
+                        className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-medium backdrop-blur-sm transition-all duration-300"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Create Novel
+                        <ChevronRight className="w-5 h-5" />
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+} 
+```
+
+/dashboard/novels/create/page.tsx:
+```typescript
+'use client';
+
+import { motion } from 'framer-motion';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import { BookOpen, Clock, FileText, Sparkles, ChevronRight } from 'lucide-react';
+import { useNovelStore } from '@/store/useNovelStore';
+import { useWorkflowNavigation } from '@/hooks/useWorkflowNavigation';
+import { useWorkflowAutoSave } from '@/hooks/useWorkflowAutoSave';
+
+const NovelSetupPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get state and actions from store
+  const { title, length: selectedLength, structure: selectedStructure } = useNovelStore(
+    (state) => state.basicInfo
+  );
+  const updateBasicInfo = useNovelStore((state) => state.updateBasicInfo);
+  const setCurrentStep = useNovelStore((state) => state.setCurrentStep);
+
+  // Navigation protection
+  const { hasUnsavedChanges } = useWorkflowNavigation();
+
+  // Auto-save
+  useWorkflowAutoSave();
+
+  useEffect(() => {
+    setCurrentStep('basic-info');
+  }, [setCurrentStep]);
+
+  const handleSubmit = async () => {
+    if (!title || !selectedLength || !selectedStructure || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      const tempId = 'temp-' + Date.now();
+      router.push(`/dashboard/novels/create/genre?id=${tempId}`);
+    } catch (error) {
+      console.error('Error creating novel:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ... rest of the component code ...
+}; 
+```
+
+/dashboard/novels/create/cultural/page.tsx:
+```typescript
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Info, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import { useCulturalStore } from '@/store/useCulturalStore';
+
+export default function CulturalElementsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
+  const selectedElements = useCulturalStore((state) => state.selectedElements);
+  const toggleElement = useCulturalStore((state) => state.toggleElement);
+  
+  // Redirect if no valid novelId
+  useEffect(() => {
+    if (!novelId || novelId === 'null') {
+      router.push('/dashboard/novels');
+    }
+  }, [novelId, router]);
+
+  const categories = {
+    historical: {
+      title: "Historical Elements",
+      description: "Ancient civilizations and historical periods that influenced culture and society",
+      tooltip: "Draw from rich historical periods to add authenticity and depth to your world. Great for building social structures, architecture, and traditions.",
+      color: "amber",
+      elements: [
+        { id: 'ancient-egyptian', name: 'Ancient Egyptian', description: 'Pyramids, pharaohs, and hieroglyphics' },
+        { id: 'ancient-roman', name: 'Ancient Roman', description: 'Legions, aqueducts, and marble columns' },
+        { id: 'medieval-european', name: 'Medieval European', description: 'Castles, knights, and feudal society' },
+        { id: 'feudal-japanese', name: 'Feudal Japanese', description: 'Samurai, shogunate, and zen gardens' },
+        { id: 'viking-norse', name: 'Viking/Norse', description: 'Longships, raiders, and Nordic traditions' },
+        { id: 'ancient-greek', name: 'Ancient Greek', description: 'Philosophy, democracy, and classical architecture' }
+      ]
+    },
+    fantasy: {
+      title: "Fantasy Elements",
+      description: "Magical and mythological elements from various cultural traditions",
+      tooltip: "Incorporate mystical and supernatural elements to create wonder and enchantment. Perfect for magical systems and otherworldly creatures.",
+      color: "emerald",
+      elements: [
+        { id: 'high-fantasy', name: 'High Fantasy', description: 'Magic, dragons, and epic quests' },
+        { id: 'norse-mythology', name: 'Norse Mythology', description: 'Gods of Asgard, Yggdrasil, and runes' },
+        { id: 'greek-mythology', name: 'Greek Mythology', description: 'Olympian gods, heroes, and monsters' },
+        { id: 'celtic-mythology', name: 'Celtic Mythology', description: 'Fae folk, druids, and ancient mysteries' },
+        { id: 'oriental-mythology', name: 'Oriental Mythology', description: 'Eastern legends, spirits, and folklore' },
+        { id: 'eldritch-cosmic', name: 'Eldritch/Cosmic', description: 'Ancient cosmic entities and otherworldly horror' }
+      ]
+    },
+    // ... rest of the categories ...
+  };
+
+  // ... rest of the component code ...
+}; 
+```
+
+/store/useCulturalStore.ts:
+```typescript
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+interface CulturalState {
+  // Cultural Data
+  selectedElements: string[];
+  
+  // State Management
+  isDirty: boolean;
+
+  // Actions
+  toggleElement: (elementId: string) => void;
+  setSelectedElements: (elements: string[]) => void;
+  resetCultural: () => void;
+  markClean: () => void;
+}
+
+const initialState = {
+  selectedElements: [],
+  isDirty: false,
+};
+
+export const useCulturalStore = create<CulturalState>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
+
+      toggleElement: (elementId) =>
+        set((state) => ({
+          selectedElements: state.selectedElements.includes(elementId)
+            ? state.selectedElements.filter(id => id !== elementId)
+            : [...state.selectedElements, elementId],
+          isDirty: true,
+        })),
+
+      setSelectedElements: (elements) =>
+        set({
+          selectedElements: elements,
+          isDirty: true,
+        }),
+
+      markClean: () => set({ isDirty: false }),
+
+      resetCultural: () => set(initialState),
+    }),
+    {
+      name: 'novel-cultural-storage',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+); 
+```
+
+/hooks/useWorkflowAutoSave.ts:
+```typescript
+import { useEffect, useRef } from 'react';
+import { useNovelStore } from '@/store/useNovelStore';
+import { useGenreStore } from '@/store/useGenreStore';
+import { useCharacterStore } from '@/store/useCharacterStore';
+import { useRelationshipStore } from '@/store/useRelationshipStore';
+import { useTimelineStore } from '@/store/useTimelineStore';
+import { useParametersStore } from '@/store/useParametersStore';
+import { useCulturalStore } from '@/store/useCulturalStore';
+
+const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+
+export const useWorkflowAutoSave = () => {
+  const timerRef = useRef<NodeJS.Timeout>();
+
+  // Get isDirty state from all stores
+  const novelIsDirty = useNovelStore((state) => state.isDirty);
+  const genreIsDirty = useGenreStore((state) => state.isDirty);
+  const charactersIsDirty = useCharacterStore((state) => state.isDirty);
+  const relationshipsIsDirty = useRelationshipStore((state) => state.isDirty);
+  const timelineIsDirty = useTimelineStore((state) => state.isDirty);
+  const parametersIsDirty = useParametersStore((state) => state.isDirty);
+  const culturalIsDirty = useCulturalStore((state) => state.isDirty);
+
+  // Get markClean functions from all stores
+  const markNovelClean = useNovelStore((state) => state.markClean);
+  const markGenreClean = useGenreStore((state) => state.markClean);
+  const markCharactersClean = useCharacterStore((state) => state.markClean);
+  const markRelationshipsClean = useRelationshipStore((state) => state.markClean);
+  const markTimelineClean = useTimelineStore((state) => state.markClean);
+  const markParametersClean = useParametersStore((state) => state.markClean);
+  const markCulturalClean = useCulturalStore((state) => state.markClean);
+
+  const hasUnsavedChanges = 
+    novelIsDirty ||
+    genreIsDirty ||
+    charactersIsDirty ||
+    relationshipsIsDirty ||
+    timelineIsDirty ||
+    parametersIsDirty ||
+    culturalIsDirty;
+
+  const markAllClean = () => {
+    markNovelClean();
+    markGenreClean();
+    markCharactersClean();
+    markRelationshipsClean();
+    markTimelineClean();
+    markParametersClean();
+    markCulturalClean();
+  };
+
+  useEffect(() => {
+    if (hasUnsavedChanges) {
+      // Clear any existing timer
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      // Set new timer
+      timerRef.current = setTimeout(() => {
+        markAllClean();
+      }, AUTO_SAVE_INTERVAL);
+    }
+
+    // Cleanup
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [hasUnsavedChanges]);
+
+  return {
+    hasUnsavedChanges,
+    markAllClean,
+  };
+};
+
+/hooks/useWorkflowNavigation.ts:
+```typescript
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useNovelStore } from '@/store/useNovelStore';
+import { useGenreStore } from '@/store/useGenreStore';
+import { useCharacterStore } from '@/store/useCharacterStore';
+import { useRelationshipStore } from '@/store/useRelationshipStore';
+import { useTimelineStore } from '@/store/useTimelineStore';
+import { useParametersStore } from '@/store/useParametersStore';
+import { useCulturalStore } from '@/store/useCulturalStore';
+
+export const useWorkflowNavigation = () => {
+  const router = useRouter();
+  
+  // Get isDirty state from all stores
+  const novelIsDirty = useNovelStore((state) => state.isDirty);
+  const genreIsDirty = useGenreStore((state) => state.isDirty);
+  const charactersIsDirty = useCharacterStore((state) => state.isDirty);
+  const relationshipsIsDirty = useRelationshipStore((state) => state.isDirty);
+  const timelineIsDirty = useTimelineStore((state) => state.isDirty);
+  const parametersIsDirty = useParametersStore((state) => state.isDirty);
+  const culturalIsDirty = useCulturalStore((state) => state.isDirty);
+
+  // Get reset functions from all stores
+  const resetNovel = useNovelStore((state) => state.resetStore);
+  const resetGenre = useGenreStore((state) => state.resetGenres);
+  const resetCharacters = useCharacterStore((state) => state.resetCharacters);
+  const resetRelationships = useRelationshipStore((state) => state.resetRelationships);
+  const resetTimeline = useTimelineStore((state) => state.resetTimeline);
+  const resetParameters = useParametersStore((state) => state.resetParameters);
+  const resetCultural = useCulturalStore((state) => state.resetCultural);
+
+  const hasUnsavedChanges = 
+    novelIsDirty ||
+    genreIsDirty ||
+    charactersIsDirty ||
+    relationshipsIsDirty ||
+    timelineIsDirty ||
+    parametersIsDirty ||
+    culturalIsDirty;
+
+  const resetAllStores = () => {
+    resetNovel();
+    resetGenre();
+    resetCharacters();
+    resetRelationships();
+    resetTimeline();
+    resetParameters();
+    resetCultural();
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    const handleRouteChange = (url: string) => {
+      if (hasUnsavedChanges) {
+        const confirm = window.confirm(
+          'You have unsaved changes. Would you like to save them before leaving?'
+        );
+
+        if (!confirm) {
+          resetAllStores();
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    // router.events.on('routeChangeStart', handleRouteChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // router.events.off('routeChangeStart', handleRouteChange);
+    };
+  }, [hasUnsavedChanges]);
+
+  return {
+    hasUnsavedChanges,
+    resetAllStores,
+  };
+}; 
