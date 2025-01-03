@@ -4,7 +4,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, User, ChevronLeft, ChevronRight, X, Crown, BookOpen, Heart, Zap, SmilePlus, CircleDot, Star, Shield, Plus, Users, UserMinus } from 'lucide-react';
 import { useCharacterStore } from '@/store/useCharacterStore';
-import type { WorkflowStep, NovelWorkflowStep } from '@/types/workflow';
+import type { NovelWorkflowStep } from '@/types/workflow';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -939,8 +939,8 @@ export const CharacterSlotsStep = ({ setCurrentWorkflowStep, setCurrentStep }: C
         >
           <motion.button
             onClick={() => {
-              setCurrentWorkflowStep('plot-structure' as WorkflowStep);
-              setCurrentStep('plot-structure' as WorkflowStep);
+              setCurrentWorkflowStep('plot-structure' as NovelWorkflowStep);
+              setCurrentStep('plot-structure' as NovelWorkflowStep);
             }}
             className="group flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
             whileHover={{ x: -5 }}
