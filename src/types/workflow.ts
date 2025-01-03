@@ -1,4 +1,5 @@
 export type WorkflowStep = 
+  | 'start'
   | 'basic-info'
   | 'genre'
   | 'world-settings'
@@ -9,4 +10,4 @@ export type WorkflowStep =
   | 'parameters'
   | 'review';
 
-export type NovelWorkflowStep = 'start' | WorkflowStep; 
+export type NovelWorkflowStep = WorkflowStep; 

@@ -1,17 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-
-// Types
-export type WorkflowStep = 
-  | 'basic-info'
-  | 'genre'
-  | 'world-settings'
-  | 'plot-structure'
-  | 'characters'
-  | 'relationships'
-  | 'timeline'
-  | 'parameters'
-  | 'review';
+import type { WorkflowStep } from '@/types/workflow';
 
 interface BasicNovelInfo {
   title: string;

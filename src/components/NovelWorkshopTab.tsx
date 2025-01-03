@@ -508,6 +508,11 @@ const plotStructures = {
   }
 };
 
+interface PlotStructureStepProps {
+  setCurrentWorkflowStep: (step: NovelWorkflowStep) => void;
+  setCurrentStep: (step: NovelWorkflowStep) => void;
+}
+
 export default function NovelWorkshopTab() {
   const [currentStep, setCurrentWorkflowStep] = useState<NovelWorkflowStep>('start');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1036,7 +1041,7 @@ export default function NovelWorkshopTab() {
                             <div className={`p-2 rounded-lg ${primaryGenre === id ? 'bg-purple-500 text-white' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-500 dark:text-purple-400'}`}>
                               <Icon className="w-5 h-5" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{genre.title}</h3>
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-white">{genre.title}</h3>
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-300">{genre.description}</p>
                         </div>
