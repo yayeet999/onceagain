@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
-import { BookOpen, Brain, Layout, Sparkles, Star, Zap, Shield, ArrowRight, ChevronRight, MessageSquare, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { BookOpen, Brain, Layout, Sparkles, Star, Zap, Shield, ArrowRight, ChevronRight, MessageSquare, Menu, X, Palette, Wand2 } from "lucide-react";
+import { PenNib } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 
 const fadeInUp = {
@@ -13,13 +13,84 @@ const fadeInUp = {
   transition: { duration: 0.5 }
 };
 
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const floatingAnimation = {
+  initial: { y: 0 },
+  animate: {
+    y: [0, -10, 0],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
+};
+
+function AnimatedGradient() {
+  return (
+    <motion.div
+      className="absolute inset-0 z-0 overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 2 }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-3xl transform rotate-12 scale-150" />
+      <div className="absolute inset-0 bg-gradient-to-l from-blue-500/10 to-pink-500/20 blur-3xl -rotate-12 scale-150" />
+      <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/80 dark:to-gray-900/80" />
+    </motion.div>
+  );
+}
+
+function FloatingIcons() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[
+        { icon: <Sparkles className="w-6 h-6" />, delay: 0 },
+        { icon: <BookOpen className="w-6 h-6" />, delay: 1 },
+        { icon: <Brain className="w-6 h-6" />, delay: 2 }
+      ].map((item, index) => (
+        <motion.div
+          key={index}
+          className="absolute text-indigo-600/30 dark:text-indigo-400/30"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ 
+            opacity: [0.5, 1, 0.5],
+            scale: [1, 1.2, 1],
+            x: [0, Math.random() * 100 - 50],
+            y: [0, Math.random() * 100 - 50]
+          }}
+          transition={{
+            duration: 10,
+            delay: item.delay,
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`
+          }}
+        >
+          {item.icon}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 h-16">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between h-full">
           {/* Logo and Brand */}
           <Link href="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
@@ -38,21 +109,19 @@ function Header() {
             <a href="#how-it-works" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
               How It Works
             </a>
-            <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-              Pricing
-            </a>
-            <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-              Testimonials
-            </a>
           </div>
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
             <Link href="/login" passHref>
-              <Button variant="ghost">Log in</Button>
+              <Button variant="ghost" className="px-6 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors duration-200">
+                Log in
+              </Button>
             </Link>
             <Link href="/signup" passHref>
-              <Button>Sign up</Button>
+              <Button className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-indigo-500/30 transition-all duration-200">
+                Sign up
+              </Button>
             </Link>
           </div>
 
@@ -82,18 +151,16 @@ function Header() {
               <a href="#how-it-works" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                 How It Works
               </a>
-              <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                Pricing
-              </a>
-              <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                Testimonials
-              </a>
               <div className="flex flex-col gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Link href="/login">
-                  <Button variant="ghost" className="w-full">Log in</Button>
+                  <Button variant="ghost" className="w-full hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors duration-200">
+                    Log in
+                  </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button className="w-full">Sign up</Button>
+                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-indigo-500/30 transition-all duration-200">
+                    Sign up
+                  </Button>
                 </Link>
               </div>
             </div>
@@ -106,67 +173,133 @@ function Header() {
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background">
+    <main className="flex min-h-screen flex-col items-center bg-white dark:bg-gray-900">
       <Header />
-      <div className="pt-16">
+      <div className="w-full flex-1 mt-16">
         {/* Hero Section */}
-        <section className="w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-muted">
+        <section className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+          <AnimatedGradient />
+          <FloatingIcons />
+          
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto relative"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="text-center max-w-4xl mx-auto relative z-10 py-16"
           >
-            {/* Background Decoration */}
-            <div className="absolute -z-10 top-0 left-1/2 transform -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl" />
-            
             <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="mb-8"
+              variants={floatingAnimation}
+              className="mb-8 relative"
             >
-              <Sparkles className="w-16 h-16 mx-auto mb-6 text-indigo-600 dark:text-indigo-400" />
+              <div className="relative">
+                <Sparkles className="w-16 h-16 mx-auto mb-6 text-indigo-600 dark:text-indigo-400" />
+                <motion.div
+                  className="absolute -inset-4 bg-indigo-500/20 blur-2xl rounded-full"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.5, 0.3],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              </div>
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 mb-6 leading-tight">
-              Craft Your Story with AI
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Transform your ideas into captivating novels, blogs, and interactive narratives with the power of AI
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button size="lg" className="rounded-full">
-                Start Creating <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full">
-                Learn More <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-          </motion.div>
 
-          {/* Enhanced Feature Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-24 max-w-7xl mx-auto px-4">
-            <FeatureCard
-              icon={<BookOpen className="w-8 h-8" />}
-              title="AI Novel Generation"
-              description="Create full-length, high-quality novels tailored to your vision and style"
-            />
-            <FeatureCard
-              icon={<Layout className="w-8 h-8" />}
-              title="SEO-Friendly Blogs"
-              description="Generate engaging blog content optimized for search engines"
-            />
-            <FeatureCard
-              icon={<Brain className="w-8 h-8" />}
-              title="Interactive Stories"
-              description="Experience dynamic narratives that adapt to your choices"
-            />
-          </div>
+            <motion.div className="relative">
+              <motion.div
+                className="absolute -inset-x-20 -inset-y-10 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-2xl rounded-full"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.3, 0.5, 0.3],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              <motion.h1
+                variants={fadeInUp}
+                className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 mb-6 leading-tight relative"
+              >
+                Craft Your Story with AI
+              </motion.h1>
+            </motion.div>
+
+            <motion.p
+              variants={fadeInUp}
+              className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
+            >
+              Transform your ideas into captivating novels, blogs, and interactive narratives with the power of AI
+            </motion.p>
+
+            <motion.div
+              variants={fadeInUp}
+              className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+            >
+              <Button
+                size="lg"
+                className="rounded-full text-lg px-8 py-6 bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                <span className="relative flex items-center">
+                  Start Creating
+                  <PenNib className="w-5 h-5 ml-2" weight="bold" />
+                </span>
+              </Button>
+            </motion.div>
+
+            {/* Stats Counter */}
+            <motion.div
+              variants={fadeInUp}
+              className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto mt-12 px-4"
+            >
+              {[
+                { value: "100K+", label: "Active Writers" },
+                { value: "1M+", label: "Stories Created" },
+                { value: "50+", label: "AI Models" },
+                { value: "4.9", label: "User Rating" }
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  className="text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 + 0.5 }}
+                >
+                  <motion.div
+                    className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 10,
+                      delay: index * 0.1 + 0.5
+                    }}
+                  >
+                    {stat.value}
+                  </motion.div>
+                  <motion.div
+                    className="text-gray-600 dark:text-gray-400 text-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.1 + 0.7 }}
+                  >
+                    {stat.label}
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* How It Works Section */}
-        <section className="w-full py-24 bg-background">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="w-full py-24 bg-background relative overflow-hidden">
+          <div className="absolute inset-0 bg-grid-black/[0.02] bg-[size:20px_20px]" />
+          <div className="max-w-7xl mx-auto px-4 relative">
             <motion.div
               initial="initial"
               whileInView="animate"
@@ -174,26 +307,34 @@ export default function Home() {
               variants={fadeInUp}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">How It Works</h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300">Create your masterpiece in three simple steps</p>
+              <span className="inline-block px-4 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-4">
+                How It Works
+              </span>
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Create Your Masterpiece</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300">Three simple steps to bring your story to life</p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-12">
+            <div className="grid md:grid-cols-3 gap-12 relative">
+              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-indigo-200 dark:via-indigo-800 to-transparent -translate-y-1/2 hidden md:block" />
+              
               {[
                 {
                   step: "1",
                   title: "Choose Your Style",
-                  description: "Select from various genres and writing styles to match your vision"
+                  description: "Select from various genres and writing styles to match your vision",
+                  icon: <Palette className="w-6 h-6" />
                 },
                 {
                   step: "2",
                   title: "Customize Details",
-                  description: "Fine-tune characters, plot elements, and narrative structure"
+                  description: "Fine-tune characters, plot elements, and narrative structure",
+                  icon: <Brain className="w-6 h-6" />
                 },
                 {
                   step: "3",
                   title: "Generate & Edit",
-                  description: "Let AI create your story and make adjustments as needed"
+                  description: "Let AI create your story and make adjustments as needed",
+                  icon: <Wand2 className="w-6 h-6" />
                 }
               ].map((item, index) => (
                 <motion.div
@@ -205,18 +346,21 @@ export default function Home() {
                     initial: { opacity: 0, y: 20 },
                     animate: { opacity: 1, y: 0, transition: { delay: index * 0.2 } }
                   }}
-                  className="relative"
+                  className="relative group"
                 >
-                  <div className="bg-indigo-50 dark:bg-gray-800 rounded-2xl p-8 relative z-10">
-                    <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold mb-6">
-                      {item.step}
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl relative z-10 h-full border border-gray-200 dark:border-gray-700
+                               transition-all duration-300 group-hover:shadow-2xl group-hover:-translate-y-1">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                        {item.icon}
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
+                        {item.step}
+                      </div>
                     </div>
                     <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{item.title}</h3>
                     <p className="text-gray-600 dark:text-gray-300">{item.description}</p>
                   </div>
-                  {index < 2 && (
-                    <div className="hidden md:block absolute top-1/2 -right-6 w-12 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
-                  )}
                 </motion.div>
               ))}
             </div>
@@ -224,8 +368,13 @@ export default function Home() {
         </section>
 
         {/* Pricing Section */}
-        <section className="w-full py-24 bg-muted">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="w-full py-24 bg-muted relative overflow-hidden">
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 opacity-50" />
+            <div className="absolute inset-0 bg-grid-black/[0.02] bg-[size:20px_20px]" />
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-4 relative">
             <motion.div
               initial="initial"
               whileInView="animate"
@@ -233,8 +382,11 @@ export default function Home() {
               variants={fadeInUp}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Simple Pricing</h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300">Choose the perfect plan for your creative needs</p>
+              <span className="inline-block px-4 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-4">
+                Pricing
+              </span>
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Simple, Transparent Pricing</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300">Choose the perfect plan for your creative journey</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -242,17 +394,42 @@ export default function Home() {
                 {
                   name: "Starter",
                   price: "Free",
-                  features: ["3 Short Stories/month", "Basic Editing Tools", "Community Support"]
+                  description: "Perfect for trying out our platform",
+                  features: [
+                    "3 Short Stories/month",
+                    "Basic Editing Tools",
+                    "Community Support",
+                    "1GB Storage"
+                  ]
                 },
                 {
                   name: "Pro",
-                  price: "$29/mo",
-                  features: ["Unlimited Stories", "Advanced AI Tools", "Priority Support", "Custom Genres"]
+                  price: "$29",
+                  period: "per month",
+                  description: "Everything you need for serious writing",
+                  features: [
+                    "Unlimited Stories",
+                    "Advanced AI Tools",
+                    "Priority Support",
+                    "Custom Genres",
+                    "50GB Storage",
+                    "Analytics Dashboard"
+                  ],
+                  popular: true
                 },
                 {
                   name: "Enterprise",
                   price: "Custom",
-                  features: ["Custom AI Models", "API Access", "Dedicated Support", "Custom Integration"]
+                  description: "For professional authors and teams",
+                  features: [
+                    "Custom AI Models",
+                    "API Access",
+                    "Dedicated Support",
+                    "Custom Integration",
+                    "Unlimited Storage",
+                    "Advanced Analytics",
+                    "Team Collaboration"
+                  ]
                 }
               ].map((plan, index) => (
                 <motion.div
@@ -264,31 +441,54 @@ export default function Home() {
                     initial: { opacity: 0, y: 20 },
                     animate: { opacity: 1, y: 0, transition: { delay: index * 0.2 } }
                   }}
-                  className={`bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-xl ${
-                    index === 1 ? "border-2 border-indigo-600 transform md:-translate-y-4" : ""
+                  className={`relative group ${
+                    plan.popular ? "md:-mt-4 md:mb-4" : ""
                   }`}
                 >
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{plan.name}</h3>
-                  <p className="text-4xl font-bold text-indigo-600 mb-6">{plan.price}</p>
-                  <ul className="space-y-4 mb-8">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                        <Zap className="w-5 h-5 text-indigo-600" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`w-full py-3 rounded-full font-semibold ${
-                      index === 1
-                        ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-                    } transition-all`}
-                  >
-                    Get Started
-                  </motion.button>
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                      <span className="inline-block px-4 py-1 rounded-full bg-indigo-600 text-white text-sm font-medium">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className={`h-full bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl transition-all duration-300
+                                 group-hover:shadow-2xl group-hover:-translate-y-1 relative
+                                 ${plan.popular ? "border-2 border-indigo-600" : "border border-gray-200 dark:border-gray-700"}`}>
+                    <div className="mb-6">
+                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">{plan.description}</p>
+                      <div className="flex items-end gap-2 mb-6">
+                        <span className="text-4xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
+                        {plan.period && (
+                          <span className="text-gray-600 dark:text-gray-400 mb-1">{plan.period}</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <ul className="space-y-4 mb-8">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+                          <Shield className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <Button
+                      size="lg"
+                      variant={plan.popular ? "default" : "outline"}
+                      className={`w-full rounded-xl ${
+                        plan.popular
+                          ? "bg-indigo-600 hover:bg-indigo-700"
+                          : "hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      Get Started
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -296,8 +496,12 @@ export default function Home() {
         </section>
 
         {/* Testimonials Section */}
-        <section className="w-full py-24 bg-white dark:bg-gray-900">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="w-full py-24 bg-white dark:bg-gray-900 relative overflow-hidden">
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-grid-black/[0.02] bg-[size:20px_20px]" />
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-4 relative">
             <motion.div
               initial="initial"
               whileInView="animate"
@@ -305,6 +509,9 @@ export default function Home() {
               variants={fadeInUp}
               className="text-center mb-16"
             >
+              <span className="inline-block px-4 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-4">
+                Testimonials
+              </span>
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">What Our Users Say</h2>
               <p className="text-xl text-gray-600 dark:text-gray-300">Join thousands of satisfied writers</p>
             </motion.div>
@@ -314,17 +521,20 @@ export default function Home() {
                 {
                   name: "Sarah Johnson",
                   role: "Published Author",
-                  content: "This platform transformed my writing process. The AI understands exactly what I want to create."
+                  content: "This platform transformed my writing process. The AI understands exactly what I want to create.",
+                  image: "https://i.pravatar.cc/100?img=1"
                 },
                 {
                   name: "Michael Chen",
                   role: "Content Creator",
-                  content: "The SEO optimization features have helped my blog reach a wider audience than ever before."
+                  content: "The SEO optimization features have helped my blog reach a wider audience than ever before.",
+                  image: "https://i.pravatar.cc/100?img=2"
                 },
                 {
                   name: "Emily Davis",
                   role: "Indie Writer",
-                  content: "The interactive story features opened up entirely new possibilities for my narrative writing."
+                  content: "The interactive story features opened up entirely new possibilities for my narrative writing.",
+                  image: "https://i.pravatar.cc/100?img=3"
                 }
               ].map((testimonial, index) => (
                 <motion.div
@@ -336,17 +546,36 @@ export default function Home() {
                     initial: { opacity: 0, y: 20 },
                     animate: { opacity: 1, y: 0, transition: { delay: index * 0.2 } }
                   }}
-                  className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8"
+                  whileHover={{ y: -5 }}
+                  className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300
+                           border border-gray-200 dark:border-gray-700 relative group"
                 >
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  
                   <div className="flex items-center gap-2 mb-2">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">{testimonial.content}</p>
+                  
+                  <p className="text-gray-600 dark:text-gray-300 mb-6 relative">
+                    <span className="absolute -top-4 -left-2 text-4xl text-indigo-200 dark:text-indigo-800">"</span>
+                    {testimonial.content}
+                    <span className="absolute -bottom-4 -right-2 text-4xl text-indigo-200 dark:text-indigo-800">"</span>
+                  </p>
+                  
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                      <MessageSquare className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                    <div className="relative">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 p-[2px]">
+                        <div className="w-full h-full rounded-full overflow-hidden">
+                          <img
+                            src={testimonial.image}
+                            alt={testimonial.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-800" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</h4>
@@ -358,46 +587,116 @@ export default function Home() {
             </div>
           </div>
         </section>
+      </div>
 
-        {/* Footer */}
-        <footer className="w-full py-12 bg-gray-50 dark:bg-gray-800">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid md:grid-cols-4 gap-8">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">StoryForge AI</h3>
-                <p className="text-gray-600 dark:text-gray-300">Empowering creativity through artificial intelligence</p>
+      {/* Footer */}
+      <footer className="w-full py-12 bg-gray-50 dark:bg-gray-800 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-grid-black/[0.02] bg-[size:20px_20px]" />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 relative">
+          <div className="grid md:grid-cols-4 gap-8 mb-12">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">StoryForge AI</h3>
               </div>
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Product</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Features</a></li>
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Pricing</a></li>
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">API</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Company</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">About</a></li>
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Blog</a></li>
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Careers</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Legal</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Privacy</a></li>
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Terms</a></li>
-                  <li><a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Security</a></li>
-                </ul>
+              <p className="text-gray-600 dark:text-gray-300">
+                Empowering creativity through artificial intelligence
+              </p>
+              <div className="flex gap-4">
+                {[
+                  { icon: "twitter", href: "#" },
+                  { icon: "github", href: "#" },
+                  { icon: "linkedin", href: "#" }
+                ].map((social) => (
+                  <a
+                    key={social.icon}
+                    href={social.href}
+                    className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center
+                             hover:bg-indigo-500 dark:hover:bg-indigo-600 text-gray-600 dark:text-gray-300
+                             hover:text-white transition-colors"
+                  >
+                    <i className={`fab fa-${social.icon}`}></i>
+                  </a>
+                ))}
               </div>
             </div>
-            <div className="border-t border-gray-200 dark:border-gray-700 mt-12 pt-8 text-center text-gray-600 dark:text-gray-300">
-              © 2024 StoryForge AI. All rights reserved.
+            
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Product</h4>
+              <ul className="space-y-2">
+                {["Features", "Pricing", "API", "Documentation"].map((item) => (
+                  <li key={item}>
+                    <a
+                      href="#"
+                      className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400
+                               transition-colors flex items-center gap-1 group"
+                    >
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      {item}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Company</h4>
+              <ul className="space-y-2">
+                {["About", "Blog", "Careers", "Press"].map((item) => (
+                  <li key={item}>
+                    <a
+                      href="#"
+                      className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400
+                               transition-colors flex items-center gap-1 group"
+                    >
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      {item}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Legal</h4>
+              <ul className="space-y-2">
+                {["Privacy", "Terms", "Security", "Cookies"].map((item) => (
+                  <li key={item}>
+                    <a
+                      href="#"
+                      className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400
+                               transition-colors flex items-center gap-1 group"
+                    >
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      {item}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </footer>
-      </div>
+          
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                © 2024 StoryForge AI. All rights reserved.
+              </p>
+              <div className="flex gap-4 text-sm">
+                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+                  Privacy Policy
+                </a>
+                <span className="text-gray-300 dark:text-gray-700">|</span>
+                <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+                  Terms of Service
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

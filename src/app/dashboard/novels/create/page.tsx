@@ -1,44 +1,44 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { BookOpen, Clock, FileText, Sparkles, ChevronRight } from 'lucide-react';
+import { useNovelStore } from '@/store/useNovelStore';
+import { useWorkflowNavigation } from '@/hooks/useWorkflowNavigation';
+import { useWorkflowAutoSave } from '@/hooks/useWorkflowAutoSave';
 
 const NovelSetupPage = () => {
   const router = useRouter();
-  const supabase = createClientComponentClient();
-  const [title, setTitle] = useState('');
-  const [selectedLength, setSelectedLength] = useState('');
-  const [selectedStructure, setSelectedStructure] = useState('');
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get state and actions from store
+  const { title, length: selectedLength, structure: selectedStructure } = useNovelStore(
+    (state) => state.basicInfo
+  );
+  const updateBasicInfo = useNovelStore((state) => state.updateBasicInfo);
+  const setCurrentStep = useNovelStore((state) => state.setCurrentStep);
+
+  // Navigation protection
+  const { hasUnsavedChanges } = useWorkflowNavigation();
+
+  // Auto-save
+  useWorkflowAutoSave();
+
   useEffect(() => {
-    setSelectedStructure('');
-  }, [selectedLength]);
+    setCurrentStep('basic-info');
+  }, [setCurrentStep]);
 
   const handleSubmit = async () => {
     if (!title || !selectedLength || !selectedStructure || isSubmitting) return;
 
     try {
       setIsSubmitting(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { error } = await supabase.from('novels').insert({
-        user_id: user.id,
-        title,
-        length: selectedLength,
-        structure: selectedStructure,
-        status: 'draft'
-      });
-
-      if (error) throw error;
-
-      router.push('/dashboard/novels/create/genre');
+      const tempId = 'temp-' + Date.now();
+      router.push(`/dashboard/novels/create/genre?id=${tempId}`);
     } catch (error) {
       console.error('Error creating novel:', error);
     } finally {
@@ -125,6 +125,19 @@ const NovelSetupPage = () => {
     visible: { opacity: 1, y: 0 },
   };
 
+  // Update input handlers
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateBasicInfo({ title: e.target.value });
+  };
+
+  const handleLengthSelect = (lengthId: string) => {
+    updateBasicInfo({ length: lengthId, structure: '' });
+  };
+
+  const handleStructureSelect = (structureId: string) => {
+    updateBasicInfo({ structure: structureId });
+  };
+
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950">
@@ -167,7 +180,7 @@ const NovelSetupPage = () => {
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleTitleChange}
               placeholder="Enter a captivating title..."
               className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200"
             />
@@ -183,7 +196,7 @@ const NovelSetupPage = () => {
               {novelLengths.map((length) => (
                 <motion.button
                   key={length.id}
-                  onClick={() => setSelectedLength(length.id)}
+                  onClick={() => handleLengthSelect(length.id)}
                   className={`p-6 rounded-2xl border ${
                     selectedLength === length.id
                       ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 shadow-lg'
@@ -224,7 +237,7 @@ const NovelSetupPage = () => {
                 getChapterStructures(selectedLength).map((structure) => (
                   <motion.button
                     key={structure.id}
-                    onClick={() => setSelectedStructure(structure.id)}
+                    onClick={() => handleStructureSelect(structure.id)}
                     className={`p-6 rounded-2xl border ${
                       selectedStructure === structure.id
                         ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 shadow-lg'

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Sparkles, ChevronLeft, ChevronRight, Calendar, Clock,
   Clock1, Clock3, Clock4, Clock2,
@@ -25,8 +25,36 @@ interface DetailedTimelineOption {
 
 export default function TimelinePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
   const [selectedTimeline, setSelectedTimeline] = useState<string | null>(null);
   const [selectedDetailedOption, setSelectedDetailedOption] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // TODO: Replace with Zustand state initialization
+  useEffect(() => {
+    if (!novelId || novelId === 'null') {
+      router.push('/dashboard/novels');
+    }
+  }, [novelId, router]);
+
+  const handleContinue = async () => {
+    if (!selectedTimeline || !selectedDetailedOption) return;
+    
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      // TODO: Replace with Zustand state management
+      router.push(`/dashboard/novels/create/parameters?id=${novelId}`);
+    } catch (error) {
+      console.error('Failed to save timeline:', error);
+      setSaveError('Failed to save timeline');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const timelineOptions: TimelineOption[] = [
     {
@@ -123,6 +151,11 @@ export default function TimelinePage() {
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto p-6">
+          {saveError && (
+            <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>
+            </div>
+          )}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -322,7 +355,13 @@ export default function TimelinePage() {
               className="flex justify-between items-center pt-12 max-w-4xl mx-auto"
             >
               <motion.button
-                onClick={() => router.push('/dashboard/novels/create/setting')}
+                onClick={() => {
+                  if (!novelId) {
+                    router.push('/dashboard/novels');
+                    return;
+                  }
+                  router.push(`/dashboard/novels/create/setting?id=${novelId}`);
+                }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white gap-2 transition-colors duration-200"
@@ -333,12 +372,13 @@ export default function TimelinePage() {
 
               {selectedDetailedOption && (
                 <motion.button
-                  onClick={() => router.push('/dashboard/novels/create/parameters')}
+                  onClick={handleContinue}
+                  disabled={isSaving}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="inline-flex items-center px-6 py-2 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white gap-2 transition-colors duration-200"
                 >
-                  Continue to Settings Parameters
+                  {isSaving ? 'Saving...' : 'Continue to Settings Parameters'}
                   <ChevronRight className="w-5 h-5" />
                 </motion.button>
               )}

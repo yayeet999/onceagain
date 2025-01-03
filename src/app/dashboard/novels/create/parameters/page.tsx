@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,12 +18,40 @@ import DashboardLayout from '@/components/layouts/DashboardLayout';
 
 export default function ParametersPage() {
   const router = useRouter();
-  const [magicLevel, setMagicLevel] = useState(false)
-  const [technologyLevel, setTechnologyLevel] = useState(50)
-  const [socialComplexity, setSocialComplexity] = useState(50)
-  const [environmentalDiversity, setEnvironmentalDiversity] = useState(50)
-  const [culturalRange, setCulturalRange] = useState(50)
-  const [supernaturalPresence, setSupernaturalPresence] = useState(false)
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
+  const [magicLevel, setMagicLevel] = useState(false);
+  const [technologyLevel, setTechnologyLevel] = useState(50);
+  const [socialComplexity, setSocialComplexity] = useState(50);
+  const [environmentalDiversity, setEnvironmentalDiversity] = useState(50);
+  const [culturalRange, setCulturalRange] = useState(50);
+  const [supernaturalPresence, setSupernaturalPresence] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // TODO: Replace with Zustand state initialization
+  useEffect(() => {
+    if (!novelId || novelId === 'null') {
+      router.push('/dashboard/novels');
+    }
+  }, [novelId, router]);
+
+  const handleContinue = async () => {
+    if (!novelId) return;
+    
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      // TODO: Replace with Zustand state management
+      router.push(`/dashboard/novels/create/cultural?id=${novelId}`);
+    } catch (error) {
+      console.error('Failed to save parameters:', error);
+      setSaveError('Failed to save parameters');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -51,6 +79,15 @@ export default function ParametersPage() {
           </div>
         </motion.div>
 
+        {/* Save Error Display */}
+        {saveError && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <p className="text-sm text-red-500 dark:text-red-400">
+              {saveError}
+            </p>
+          </div>
+        )}
+
         {/* Main Content */}
         <TooltipProvider>
           <div className="max-w-4xl mx-auto p-8 space-y-8">
@@ -63,105 +100,137 @@ export default function ParametersPage() {
               <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Configure World System Parameters</h2>
             </motion.div>
 
+            {/* Magic Level */}
             <Card className="overflow-hidden shadow-lg">
-              <CardContent className="p-8 space-y-10 bg-white dark:bg-gray-900">
-                {/* Magic Level */}
-                <ParameterControl
-                  icon={<Sparkles className="w-6 h-6 text-purple-500" />}
-                  title="Magic Level"
-                  description="Toggle the presence of magic in your world"
-                  control={
-                    <Switch
-                      checked={magicLevel}
-                      onCheckedChange={setMagicLevel}
-                      className="data-[state=checked]:bg-purple-500"
-                    />
-                  }
-                  value={magicLevel ? "Magical world" : "No magic, purely mundane world"}
-                />
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Wand2 className="w-6 h-6 text-purple-500" />
+                    <div>
+                      <h3 className="text-lg font-semibold">Magic Level</h3>
+                      <p className="text-sm text-gray-500">Does your world have magic?</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={magicLevel}
+                    onCheckedChange={(checked) => {
+                      setMagicLevel(checked);
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                {/* Technology Level */}
-                <ParameterControl
-                  icon={<Cpu className="w-6 h-6 text-blue-500" />}
-                  title="Technology Level"
-                  description="Set the technological advancement of your world"
-                  control={
-                    <Slider
-                      value={[technologyLevel]}
-                      onValueChange={(value) => setTechnologyLevel(value[0])}
-                      max={100}
-                      step={1}
-                      className="cursor-pointer"
-                    />
-                  }
-                  value={`${technologyLevel}% - ${getTechnologyDescription(technologyLevel)}`}
-                />
+            {/* Technology Level */}
+            <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Cpu className="w-6 h-6 text-blue-500" />
+                    <div>
+                      <h3 className="text-lg font-semibold">Technology Level</h3>
+                      <p className="text-sm text-gray-500">How advanced is your world's technology?</p>
+                    </div>
+                  </div>
+                  <Slider
+                    value={[technologyLevel]}
+                    onValueChange={(value) => {
+                      setTechnologyLevel(value[0]);
+                    }}
+                    max={100}
+                    step={1}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                {/* Social Complexity */}
-                <ParameterControl
-                  icon={<Users className="w-6 h-6 text-green-500" />}
-                  title="Social Complexity"
-                  description="Define the intricacy of social structures and organizations"
-                  control={
-                    <Slider
-                      value={[socialComplexity]}
-                      onValueChange={(value) => setSocialComplexity(value[0])}
-                      max={100}
-                      step={1}
-                      className="cursor-pointer"
-                    />
-                  }
-                  value={`${socialComplexity}% - ${getSocialComplexityDescription(socialComplexity)}`}
-                />
+            {/* Social Complexity */}
+            <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-6 h-6 text-green-500" />
+                    <div>
+                      <h3 className="text-lg font-semibold">Social Complexity</h3>
+                      <p className="text-sm text-gray-500">How intricate are your world's social structures?</p>
+                    </div>
+                  </div>
+                  <Slider
+                    value={[socialComplexity]}
+                    onValueChange={(value) => {
+                      setSocialComplexity(value[0]);
+                    }}
+                    max={100}
+                    step={1}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                {/* Environmental Diversity */}
-                <ParameterControl
-                  icon={<Trees className="w-6 h-6 text-emerald-500" />}
-                  title="Environmental Diversity"
-                  description="Set the variety of ecosystems and climates"
-                  control={
-                    <Slider
-                      value={[environmentalDiversity]}
-                      onValueChange={(value) => setEnvironmentalDiversity(value[0])}
-                      max={100}
-                      step={1}
-                      className="cursor-pointer"
-                    />
-                  }
-                  value={`${environmentalDiversity}% - ${getEnvironmentalDiversityDescription(environmentalDiversity)}`}
-                />
+            {/* Environmental Diversity */}
+            <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Trees className="w-6 h-6 text-emerald-500" />
+                    <div>
+                      <h3 className="text-lg font-semibold">Environmental Diversity</h3>
+                      <p className="text-sm text-gray-500">How varied are your world's environments?</p>
+                    </div>
+                  </div>
+                  <Slider
+                    value={[environmentalDiversity]}
+                    onValueChange={(value) => {
+                      setEnvironmentalDiversity(value[0]);
+                    }}
+                    max={100}
+                    step={1}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                {/* Cultural Range */}
-                <ParameterControl
-                  icon={<Globe className="w-6 h-6 text-orange-500" />}
-                  title="Cultural Range"
-                  description="Define the diversity of customs, beliefs, and traditions"
-                  control={
-                    <Slider
-                      value={[culturalRange]}
-                      onValueChange={(value) => setCulturalRange(value[0])}
-                      max={100}
-                      step={1}
-                      className="cursor-pointer"
-                    />
-                  }
-                  value={`${culturalRange}% - ${getCulturalRangeDescription(culturalRange)}`}
-                />
+            {/* Cultural Range */}
+            <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-6 h-6 text-indigo-500" />
+                    <div>
+                      <h3 className="text-lg font-semibold">Cultural Range</h3>
+                      <p className="text-sm text-gray-500">How diverse are your world's cultures?</p>
+                    </div>
+                  </div>
+                  <Slider
+                    value={[culturalRange]}
+                    onValueChange={(value) => {
+                      setCulturalRange(value[0]);
+                    }}
+                    max={100}
+                    step={1}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                {/* Supernatural Presence */}
-                <ParameterControl
-                  icon={<Wand2 className="w-6 h-6 text-violet-500" />}
-                  title="Supernatural Presence"
-                  description="Toggle the existence of supernatural elements"
-                  control={
-                    <Switch
-                      checked={supernaturalPresence}
-                      onCheckedChange={setSupernaturalPresence}
-                      className="data-[state=checked]:bg-violet-500"
-                    />
-                  }
-                  value={supernaturalPresence ? "Supernatural elements present" : "No supernatural elements"}
-                />
+            {/* Supernatural Presence */}
+            <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="w-6 h-6 text-amber-500" />
+                    <div>
+                      <h3 className="text-lg font-semibold">Supernatural Presence</h3>
+                      <p className="text-sm text-gray-500">Are there supernatural elements beyond magic?</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={supernaturalPresence}
+                    onCheckedChange={(checked) => {
+                      setSupernaturalPresence(checked);
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -172,22 +241,22 @@ export default function ParametersPage() {
               className="flex justify-between items-center pt-12"
             >
               <motion.button
-                onClick={() => router.push('/dashboard/novels/create/timeline')}
+                onClick={() => router.push(`/dashboard/novels/create/genre?id=${novelId}`)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white gap-2 transition-colors duration-200"
               >
                 <ChevronLeft className="w-5 h-5" />
-                Back to Timeline
+                Back to Genre
               </motion.button>
 
               <motion.button
-                onClick={() => router.push('/dashboard/novels/create/cultural')}
+                onClick={handleContinue}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center px-6 py-2 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white gap-2 transition-colors duration-200"
               >
-                Continue to Cultural Elements
+                Continue to Cultural
                 <ChevronRight className="w-5 h-5" />
               </motion.button>
             </motion.div>
@@ -196,80 +265,4 @@ export default function ParametersPage() {
       </div>
     </DashboardLayout>
   )
-}
-
-interface ParameterControlProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  control: React.ReactNode;
-  value: string;
-}
-
-function ParameterControl({ icon, title, description, control, value }: ParameterControlProps) {
-  return (
-    <motion.div 
-      className="flex items-start space-x-4"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="mt-1">{icon}</div>
-      <div className="flex-grow space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{title}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
-          </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
-                <Info className="w-4 h-4" />
-                <span className="sr-only">More info</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{description}</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <div className="flex items-center justify-between space-x-4">
-          <div className="w-full max-w-sm">{control}</div>
-          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[120px] text-right">{value}</div>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-function getTechnologyDescription(level: number): string {
-  if (level < 20) return "Stone Age"
-  if (level < 40) return "Bronze Age"
-  if (level < 60) return "Industrial Age"
-  if (level < 80) return "Information Age"
-  return "Future Tech"
-}
-
-function getSocialComplexityDescription(level: number): string {
-  if (level < 20) return "Tribal"
-  if (level < 40) return "Chiefdom"
-  if (level < 60) return "State-level"
-  if (level < 80) return "Complex state"
-  return "Global society"
-}
-
-function getEnvironmentalDiversityDescription(level: number): string {
-  if (level < 20) return "Uniform"
-  if (level < 40) return "Low diversity"
-  if (level < 60) return "Moderate diversity"
-  if (level < 80) return "High diversity"
-  return "Extreme diversity"
-}
-
-function getCulturalRangeDescription(level: number): string {
-  if (level < 20) return "Monoculture"
-  if (level < 40) return "Low diversity"
-  if (level < 60) return "Moderate diversity"
-  if (level < 80) return "High diversity"
-  return "Extreme diversity"
 } 

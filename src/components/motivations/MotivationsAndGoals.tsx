@@ -53,8 +53,6 @@ export const MotivationsAndGoals: React.FC<MotivationsAndGoalsProps> = ({ onComp
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Motivations & Goals</h2>
-        
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-medium text-gray-700 mb-4">Primary Motivation (Select up to 3)</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -131,6 +129,15 @@ export const MotivationsAndGoals: React.FC<MotivationsAndGoalsProps> = ({ onComp
             ))}
           </div>
         )}
+      </div>
+
+      <div className="flex justify-end pt-6">
+        <Button
+          onClick={() => onComplete({ motivations: selectedMotivations, goals })}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          Create Character
+        </Button>
       </div>
     </div>
   );

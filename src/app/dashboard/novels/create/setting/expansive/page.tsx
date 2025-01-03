@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Sparkles, Mountain, Castle, Wand2, Rocket, 
   Network, Globe2, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import type { ExpansiveSetting } from '@/store/useSettingsStore';
 
 interface SettingCategory {
   icon: any;
@@ -24,8 +26,41 @@ interface SettingCategory {
 
 export default function ExpansiveSettingsPage() {
   const router = useRouter();
-  const [selectedSetting, setSelectedSetting] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
   const [hoveredSetting, setHoveredSetting] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Get state and actions from store
+  const { settingType, settingDetails, setSettingDetails, canContinue } = useSettingsStore();
+
+  // Redirect if wrong setting type
+  useEffect(() => {
+    if (settingType !== 'expansive') {
+      router.push('/dashboard/novels/create/setting');
+    }
+  }, [settingType, router]);
+
+  const handleSettingSelect = (title: ExpansiveSetting) => {
+    setSettingDetails(title);
+  };
+
+  const handleContinue = async () => {
+    if (!canContinue()) return;
+    
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      router.push(`/dashboard/novels/create/timeline?id=${novelId}`);
+    } catch (error) {
+      console.error('Failed to update setting details:', error);
+      setSaveError('Failed to save setting details');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const settingCategories: SettingCategory[] = [
     {
@@ -148,7 +183,7 @@ export default function ExpansiveSettingsPage() {
               {settingCategories.map((category, index) => (
                 <motion.button
                   key={category.title}
-                  onClick={() => setSelectedSetting(category.title)}
+                  onClick={() => handleSettingSelect(category.title as ExpansiveSetting)}
                   onHoverStart={() => setHoveredSetting(category.title)}
                   onHoverEnd={() => setHoveredSetting(null)}
                   initial={{ opacity: 0, y: 20 }}
@@ -159,7 +194,7 @@ export default function ExpansiveSettingsPage() {
                   }}
                   className={`
                     relative p-8 rounded-3xl border-2 text-left transition-all duration-300
-                    ${selectedSetting === category.title
+                    ${settingDetails === category.title
                       ? `${category.color.border} bg-white/90 shadow-2xl ring-4 ring-${category.color.text}/20`
                       : 'border-gray-200/60 bg-white/80 hover:bg-white/90 hover:shadow-xl'
                     }
@@ -190,7 +225,7 @@ export default function ExpansiveSettingsPage() {
                   <div className="relative space-y-4">
                     <div className={`
                       p-4 rounded-2xl bg-white dark:bg-gray-800 shadow-lg
-                      ${selectedSetting === category.title ? category.color.text : 'text-gray-400'}
+                      ${settingDetails === category.title ? category.color.text : 'text-gray-400'}
                       group-hover:${category.color.text} transition-colors duration-300
                       w-fit
                     `}>
@@ -207,7 +242,7 @@ export default function ExpansiveSettingsPage() {
                     </div>
 
                     {/* Selection Indicator */}
-                    {selectedSetting === category.title && (
+                    {settingDetails === category.title && (
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -239,23 +274,17 @@ export default function ExpansiveSettingsPage() {
                 Back to Setting Type
               </motion.button>
 
-              <motion.button
-                onClick={() => router.push('/dashboard/novels/create/timeline')}
-                disabled={!selectedSetting}
-                className={`
-                  group flex items-center gap-2 px-8 py-4 rounded-2xl font-medium shadow-lg
-                  ${selectedSetting
-                    ? 'bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 text-white hover:shadow-xl'
-                    : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                  }
-                  transition-all duration-300
-                `}
-                whileHover={selectedSetting ? { x: 5, scale: 1.02 } : {}}
-                whileTap={selectedSetting ? { scale: 0.98 } : {}}
-              >
-                Continue to Timeline
-                <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </motion.button>
+              {settingDetails && (
+                <motion.button
+                  onClick={handleContinue}
+                  className="group flex items-center gap-2 px-8 py-4 rounded-2xl font-medium shadow-lg bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 text-white hover:shadow-xl transition-all duration-300"
+                  whileHover={{ x: 5, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Continue to Timeline
+                  <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </motion.button>
+              )}
             </motion.div>
           </motion.div>
         </div>

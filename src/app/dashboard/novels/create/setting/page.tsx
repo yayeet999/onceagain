@@ -2,203 +2,203 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { Sparkles, Box, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Sparkles, ChevronLeft, ChevronRight, Box, Globe } from 'lucide-react';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
-export default function SettingSelectionPage() {
+export default function SettingTypePage() {
   const router = useRouter();
-  const [selectedSetting, setSelectedSetting] = useState<'contained' | 'expansive' | null>(null);
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const settings = {
-    contained: {
-      icon: Box,
-      title: 'Contained Settings',
-      description: 'Focused environments with clear boundaries and defined spaces',
-      examples: ['Single Building', 'Small Town', 'Isolated Island', 'Space Station', 'University Campus'],
-      benefits: ['Intimate character dynamics', 'Detailed environment exploration', 'Focused narrative scope']
-    },
-    expansive: {
-      icon: Globe,
-      title: 'Expansive Settings',
-      description: 'Vast worlds and realms with broad scope and extensive reach',
-      examples: ['Multiple Kingdoms', 'Entire Planets', 'Parallel Universes', 'Sprawling Cities', 'Connected Realms'],
-      benefits: ['Epic world-building potential', 'Multiple location exploration', 'Grand-scale adventures']
+  // Get state and actions from store
+  const { settingType, setSettingType } = useSettingsStore();
+
+  const handleTypeSelect = (type: 'contained' | 'expansive') => {
+    setSettingType(type);
+  };
+
+  const handleContinue = async () => {
+    if (!settingType) return;
+    
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      router.push(`/dashboard/novels/create/setting/${settingType}?id=${novelId}`);
+    } catch (error) {
+      console.error('Failed to update setting type:', error);
+      setSaveError('Failed to update setting type');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const content = (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950">
-      {/* Header Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-blue-500" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                Create Your Novel
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div className="w-3/4 h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
+  const settingTypes = [
+    {
+      icon: Box,
+      title: 'Contained',
+      description: 'A focused, intimate setting where the story unfolds within defined boundaries. Perfect for character-driven narratives and intense personal stories.',
+      examples: ['A single household', 'A small town', 'A school campus', 'A remote facility']
+    },
+    {
+      icon: Globe,
+      title: 'Expansive',
+      description: 'A vast, sprawling setting that spans multiple locations or realms. Ideal for epic adventures and stories with broad scope.',
+      examples: ['Multiple countries', 'Different worlds', 'Vast empires', 'Interconnected realms']
+    }
+  ];
+
+  return (
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-900 dark:to-slate-950">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-8 h-8 text-gray-500" />
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-600 to-slate-600 dark:from-gray-400 dark:to-slate-400 bg-clip-text text-transparent">
+                  Create Your Novel
+                </h1>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div className="w-4/5 h-full bg-gradient-to-r from-gray-500 to-slate-500 rounded-full" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
-        >
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-              Choose Your Setting Type
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Start by selecting the broad category of your world's setting
+        {/* Save Error Display */}
+        {saveError && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <p className="text-sm text-red-500 dark:text-red-400">
+              {saveError}
             </p>
           </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {(Object.entries(settings) as [keyof typeof settings, typeof settings[keyof typeof settings]][]).map(([key, setting]) => (
-              <motion.div
-                key={key}
-                onClick={() => setSelectedSetting(key)}
-                className={`
-                  relative rounded-3xl border-2 overflow-hidden cursor-pointer backdrop-blur-sm
-                  ${selectedSetting === key
-                    ? 'border-blue-400/50 bg-white/90 shadow-2xl ring-4 ring-blue-500/20'
-                    : 'border-gray-200/60 bg-white/80 hover:bg-white/90 hover:shadow-xl hover:border-blue-200/40'
-                  }
-                  transition-all duration-300 group
-                `}
-                whileHover={{ scale: 1.02, y: -5 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {/* Decorative background gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                <div className="relative p-8">
-                  <div className="flex items-start gap-4 mb-8">
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            <div className="text-center space-y-3">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Choose Your Setting Type
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Select the scope of your story's world
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {settingTypes.map((type, index) => (
+                <motion.button
+                  key={type.title}
+                  onClick={() => handleTypeSelect(type.title.toLowerCase())}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0,
+                    transition: { delay: index * 0.1 }
+                  }}
+                  className={`
+                    relative p-8 rounded-3xl text-left transition-all duration-300
+                    ${settingType === type.title.toLowerCase()
+                      ? 'bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/50 dark:to-blue-900/50 shadow-xl shadow-indigo-100/50 dark:shadow-indigo-900/20 border-2 border-indigo-100 dark:border-indigo-800'
+                      : 'bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 hover:from-indigo-50 hover:to-blue-50 dark:hover:from-indigo-900/30 dark:hover:to-blue-900/30 border-2 border-transparent hover:border-indigo-100 dark:hover:border-indigo-800 hover:shadow-lg hover:shadow-indigo-100/30 dark:hover:shadow-indigo-900/10'
+                    }
+                    group
+                  `}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="relative flex items-start gap-6">
                     <div className={`
-                      p-4 rounded-2xl shadow-lg
-                      ${selectedSetting === key
-                        ? 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40'
-                        : 'bg-gray-100/80 dark:bg-gray-800/40 group-hover:bg-gradient-to-br group-hover:from-blue-50 group-hover:to-indigo-50 dark:group-hover:from-blue-900/20 dark:group-hover:to-indigo-900/20'
+                      flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br p-0.5
+                      ${settingType === type.title.toLowerCase()
+                        ? 'from-indigo-500 to-blue-500 dark:from-indigo-400 dark:to-blue-400'
+                        : 'from-gray-400 to-slate-400 dark:from-gray-500 dark:to-slate-500 group-hover:from-indigo-500 group-hover:to-blue-500 dark:group-hover:from-indigo-400 dark:group-hover:to-blue-400'
                       }
-                      transition-all duration-300
+                      transition-all duration-200
                     `}>
-                      <setting.icon className={`
-                        w-10 h-10
-                        ${selectedSetting === key
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-400'
-                        }
-                        transition-colors duration-300
-                      `} />
+                      <div className="flex items-center justify-center w-full h-full rounded-xl bg-white dark:bg-gray-900">
+                        <type.icon className="w-7 h-7" />
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{setting.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-lg">{setting.description}</p>
-                    </div>
-                  </div>
 
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-                        Examples
-                      </h4>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`
+                        font-semibold text-xl mb-2 truncate
+                        ${settingType === type.title.toLowerCase()
+                          ? 'text-indigo-600 dark:text-indigo-400'
+                          : 'text-gray-900 dark:text-white'
+                        }
+                      `}>
+                        {type.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-4">
+                        {type.description}
+                      </p>
                       <div className="flex flex-wrap gap-2">
-                        {setting.examples.map((example) => (
+                        {type.examples.map((example, i) => (
                           <span
-                            key={example}
-                            className={`
-                              px-4 py-2 rounded-xl text-sm font-medium
-                              ${selectedSetting === key
-                                ? 'bg-blue-100/80 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
-                                : 'bg-gray-100/80 text-gray-700 dark:bg-gray-800/40 dark:text-gray-300'
-                              }
-                              transition-colors duration-300
-                            `}
+                            key={i}
+                            className="px-3 py-1 rounded-full text-sm bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300"
                           >
                             {example}
                           </span>
                         ))}
                       </div>
                     </div>
-
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-                        Benefits
-                      </h4>
-                      <ul className="space-y-3">
-                        {setting.benefits.map((benefit) => (
-                          <li key={benefit} className="flex items-center gap-3 text-gray-700 dark:text-gray-200">
-                            <div className={`
-                              w-2 h-2 rounded-full
-                              ${selectedSetting === key
-                                ? 'bg-blue-500 dark:bg-blue-400'
-                                : 'bg-gray-400 dark:bg-gray-500'
-                              }
-                            `} />
-                            <span className="text-base">{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.button>
+              ))}
+            </div>
 
-          {/* Navigation Buttons */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex justify-between items-center pt-12"
-          >
-            <motion.button
-              onClick={() => router.push('/dashboard/novels/create/genre')}
-              className="group flex items-center gap-2 px-8 py-4 rounded-2xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-white/50 dark:bg-gray-800/30 hover:bg-white dark:hover:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300"
-              whileHover={{ x: -5 }}
-              whileTap={{ scale: 0.98 }}
+            {/* Navigation Buttons */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-between items-center pt-12 max-w-4xl mx-auto"
             >
-              <ChevronLeft className="w-5 h-5 transition-transform duration-300 group-hover:-translate-x-1" />
-              Back to Genre
-            </motion.button>
+              <motion.button
+                onClick={() => router.push(`/dashboard/novels/create/genre?id=${novelId}`)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white gap-2 transition-colors duration-200"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                Back to Genre
+              </motion.button>
 
-            <motion.button
-              onClick={() => router.push(`/dashboard/novels/create/setting/${selectedSetting}`)}
-              disabled={!selectedSetting}
-              className={`
-                group flex items-center gap-2 px-8 py-4 rounded-2xl font-medium shadow-lg
-                ${selectedSetting
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white hover:shadow-xl'
-                  : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                }
-                transition-all duration-300
-              `}
-              whileHover={selectedSetting ? { x: 5, scale: 1.02 } : {}}
-              whileTap={selectedSetting ? { scale: 0.98 } : {}}
-            >
-              Continue
-              <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </motion.button>
+              {settingType && (
+                <motion.button
+                  onClick={handleContinue}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex items-center px-6 py-2 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white gap-2 transition-colors duration-200"
+                >
+                  Continue to Setting Details
+                  <ChevronRight className="w-5 h-5" />
+                </motion.button>
+              )}
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
-
-  return <DashboardLayout>{content}</DashboardLayout>;
 } 

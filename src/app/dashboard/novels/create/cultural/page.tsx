@@ -1,15 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Info, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 
 export default function CulturalElementsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
   
+  // Redirect if no valid novelId
+  useEffect(() => {
+    if (!novelId || novelId === 'null') {
+      router.push('/dashboard/novels');
+    }
+  }, [novelId, router]);
+
   const categories = {
     historical: {
       title: "Historical Elements",
@@ -198,7 +207,7 @@ export default function CulturalElementsPage() {
             className="flex justify-between items-center pt-12"
           >
             <motion.button
-              onClick={() => router.push('/dashboard/novels/create/parameters')}
+              onClick={() => router.push(`/dashboard/novels/create/parameters?id=${novelId}`)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="inline-flex items-center px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white gap-2 transition-colors duration-200"
@@ -209,7 +218,7 @@ export default function CulturalElementsPage() {
 
             {selectedElements.length > 0 && (
               <motion.button
-                onClick={() => router.push('/dashboard/novels/create/characters')}
+                onClick={() => router.push(`/dashboard/novels/create/characters?id=${novelId}`)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center px-6 py-2 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white gap-2 transition-colors duration-200"

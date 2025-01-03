@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Rocket, Search, Book, Heart, Zap, Ghost, Clock, Mountain, Home, PenTool, Glasses, FlaskConical, ChevronLeft, ChevronRight } from 'lucide-react';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
-import { useRouter } from 'next/navigation';
+import { useGenreStore } from '@/store/useGenreStore';
+import { useWorkflowNavigation } from '@/hooks/useWorkflowNavigation';
+import { useWorkflowAutoSave } from '@/hooks/useWorkflowAutoSave';
 
 interface Subgenre {
   name: string;
@@ -12,12 +15,19 @@ interface Subgenre {
 }
 
 interface Genre {
-  icon: any; // Using any for Lucide icons
+  icon: any;
   title: string;
   description: string;
   variations: Subgenre[];
   blends: Subgenre[];
   approaches: Subgenre[];
+}
+
+interface GenreState {
+  selectedGenre: string | null;
+  selectedSubgenre: string | null;
+  selectedBlend: string | null;
+  selectedApproach: string | null;
 }
 
 // Genre data structure
@@ -264,246 +274,188 @@ const genres: Record<string, Genre> = {
   }
 };
 
-// Add genre-specific color mappings
-const genreColors = {
-  fantasy: { from: 'from-purple-500', to: 'to-indigo-500', light: 'from-purple-50', lightTo: 'to-indigo-50' },
-  scifi: { from: 'from-cyan-500', to: 'to-blue-500', light: 'from-cyan-50', lightTo: 'to-blue-50' },
-  mystery: { from: 'from-amber-500', to: 'to-orange-500', light: 'from-amber-50', lightTo: 'to-orange-50' },
-  literary: { from: 'from-emerald-500', to: 'to-green-500', light: 'from-emerald-50', lightTo: 'to-green-50' },
-  romance: { from: 'from-pink-500', to: 'to-rose-500', light: 'from-pink-50', lightTo: 'to-rose-50' },
-  thriller: { from: 'from-red-500', to: 'to-orange-500', light: 'from-red-50', lightTo: 'to-orange-50' },
-  horror: { from: 'from-slate-500', to: 'to-gray-500', light: 'from-slate-50', lightTo: 'to-gray-50' },
-  historical: { from: 'from-amber-500', to: 'to-yellow-500', light: 'from-amber-50', lightTo: 'to-yellow-50' },
-  adventure: { from: 'from-lime-500', to: 'to-green-500', light: 'from-lime-50', lightTo: 'to-green-50' },
-  contemporary: { from: 'from-blue-500', to: 'to-indigo-500', light: 'from-blue-50', lightTo: 'to-indigo-50' },
-  satire: { from: 'from-violet-500', to: 'to-purple-500', light: 'from-violet-50', lightTo: 'to-purple-50' },
-  speculative: { from: 'from-teal-500', to: 'to-cyan-500', light: 'from-teal-50', lightTo: 'to-cyan-50' }
-};
-
-export default function GenreSelectionPage() {
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
-  const [selectedSubgenres, setSelectedSubgenres] = useState<string[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
+export default function GenrePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const novelId = searchParams.get('id');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setSelectedGenre(null);
-        setSelectedSubgenres([]);
-      }
+  // Get state and actions from store
+  const {
+    primaryGenre,
+    subgenre,
+    genreBlend,
+    genreApproach,
+    setPrimaryGenre,
+    setSubgenre,
+    setGenreBlend,
+    setGenreApproach,
+    canContinue
+  } = useGenreStore();
+
+  // Navigation protection
+  useWorkflowNavigation();
+
+  // Auto-save
+  useWorkflowAutoSave();
+
+  const handleContinue = async () => {
+    if (!canContinue()) return;
+    
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      router.push(`/dashboard/novels/create/setting?id=${novelId}`);
+    } catch (error) {
+      console.error('Failed to save genre:', error);
+      setSaveError('Failed to save genre');
+    } finally {
+      setIsSaving(false);
     }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  };
 
   const handleGenreSelect = (genre: string) => {
-    setSelectedGenre(genre === selectedGenre ? null : genre);
-    setSelectedSubgenres([]);
+    setPrimaryGenre(genre);
   };
 
   const handleSubgenreSelect = (subgenre: string) => {
-    setSelectedSubgenres(prev => {
-      if (prev.includes(subgenre)) {
-        return prev.filter(s => s !== subgenre);
-      }
-      if (prev.length >= 2) {
-        return [...prev.slice(1), subgenre];
-      }
-      return [...prev, subgenre];
-    });
+    setSubgenre(subgenre);
   };
 
-  const content = (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950">
-      {/* Header Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-blue-500" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                Create Your Novel
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div className="w-2/4 h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
+  const handleBlendSelect = (blend: string) => {
+    setGenreBlend(blend);
+  };
+
+  const handleApproachSelect = (approach: string) => {
+    setGenreApproach(approach);
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-900 dark:to-slate-950">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                  <Sparkles className="w-8 h-8 text-gray-500" />
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-600 to-slate-600 dark:from-gray-400 dark:to-slate-400 bg-clip-text text-transparent">
+                  Create Your Novel
+                </h1>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className="w-4/5 h-full bg-gradient-to-r from-gray-500 to-slate-500 rounded-full" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-6" ref={containerRef}>
-        <div className="space-y-6">
-          <AnimatePresence mode="sync">
-            {Object.entries(genres).map(([key, genre]) => (
-              <motion.div
-                key={key}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0,
-                  height: 'auto',
-                  transition: {
-                    type: 'spring',
-                    stiffness: 400,
-                    damping: 25,
-                    mass: 1
-                  }
-                }}
-                exit={{ opacity: 0, y: -20 }}
-                className={`
-                  relative rounded-xl border overflow-hidden
-                  ${selectedGenre === key 
-                    ? `border-${genreColors[key as keyof typeof genreColors].from.replace('from-', '')}-200 bg-white shadow-lg ring-2 ring-${genreColors[key as keyof typeof genreColors].from.replace('from-', '')}-500/30` 
-                    : 'border-gray-200 bg-white/50 hover:bg-white hover:shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
-                  }
-                  transition-all duration-300
-                `}
-                onClick={() => handleGenreSelect(key)}
+        {/* Save Error Display */}
+        {saveError && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <p className="text-sm text-red-500 dark:text-red-400">
+              {saveError}
+            </p>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto p-6">
+          {/* Genre Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(genres).map(([id, genre]) => (
+              <motion.button
+                key={id}
+                onClick={() => handleGenreSelect(id)}
+                className={`p-6 rounded-2xl border ${
+                  primaryGenre === id
+                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
+                    : 'border-gray-200 dark:border-gray-700'
+                }`}
               >
-                <motion.div 
-                  className="p-6 flex items-start gap-4"
-                  layout="position"
-                >
-                  <motion.div 
-                    className={`
-                      rounded-lg p-3
-                      ${selectedGenre === key 
-                        ? `bg-gradient-to-br ${genreColors[key as keyof typeof genreColors].light} ${genreColors[key as keyof typeof genreColors].lightTo} shadow-sm` 
-                        : 'bg-gradient-to-br from-gray-50 to-white'
-                      }
-                      transition-colors duration-300
-                    `}
-                    layout
-                  >
-                    <genre.icon className={`
-                      w-6 h-6
-                      ${selectedGenre === key 
-                        ? `text-${genreColors[key as keyof typeof genreColors].from.replace('from-', '')}-500` 
-                        : 'text-gray-500'
-                      }
-                      transition-colors duration-300
-                    `} />
-                  </motion.div>
-                  <div>
-                    <motion.h2 
-                      className={`
-                        text-xl font-medium
-                        ${selectedGenre === key 
-                          ? `text-${genreColors[key as keyof typeof genreColors].from.replace('from-', '')}-700` 
-                          : 'text-gray-900'
-                        }
-                      `}
-                      layout="position"
-                    >
-                      {genre.title}
-                    </motion.h2>
-                    <motion.p 
-                      className="text-gray-500 mt-1"
-                      layout="position"
-                    >
-                      {genre.description}
-                    </motion.p>
-                  </div>
-                </motion.div>
-
-                <AnimatePresence mode="wait">
-                  {selectedGenre === key && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ 
-                        opacity: 1, 
-                        height: 'auto',
-                        transition: {
-                          duration: 0.3,
-                          ease: 'easeOut'
-                        }
-                      }}
-                      exit={{ 
-                        opacity: 0, 
-                        height: 0,
-                        transition: {
-                          duration: 0.2,
-                          ease: 'easeIn'
-                        }
-                      }}
-                      className="px-6 pb-6"
-                    >
-                      <div className="space-y-6">
-                        {['variations', 'blends', 'approaches'].map((category, categoryIndex) => (
-                          <motion.div 
-                            key={category} 
-                            className="space-y-3"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ 
-                              opacity: 1, 
-                              y: 0,
-                              transition: {
-                                delay: categoryIndex * 0.1
-                              }
-                            }}
-                          >
-                            <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">
-                              {category.replace(/([A-Z])/g, ' $1').trim()}
-                            </h3>
-                            <div className="grid grid-cols-3 gap-4">
-                              {genre[category as keyof Genre].map((subgenre: Subgenre, index: number) => (
-                                <motion.button
-                                  key={subgenre.name}
-                                  initial={{ opacity: 0, scale: 0.9 }}
-                                  animate={{ 
-                                    opacity: 1, 
-                                    scale: 1,
-                                    transition: { 
-                                      delay: categoryIndex * 0.1 + index * 0.05,
-                                      type: 'spring',
-                                      stiffness: 400,
-                                      damping: 25
-                                    }
-                                  }}
-                                  whileHover={{ 
-                                    scale: 1.02,
-                                    transition: { duration: 0.2 }
-                                  }}
-                                  whileTap={{ scale: 0.98 }}
-                                  className={`
-                                    p-4 rounded-lg text-left transition-all
-                                    ${selectedSubgenres.includes(subgenre.name)
-                                      ? `bg-gradient-to-br ${genreColors[key as keyof typeof genreColors].from} ${genreColors[key as keyof typeof genreColors].to} text-white shadow-lg`
-                                      : 'bg-gradient-to-br from-gray-50 to-white hover:from-blue-50 hover:to-indigo-50 text-gray-900 border border-gray-100'
-                                    }
-                                  `}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSubgenreSelect(subgenre.name);
-                                  }}
-                                >
-                                  <div className="font-medium">{subgenre.name}</div>
-                                  <div className="text-sm mt-1 opacity-80">
-                                    {subgenre.description}
-                                  </div>
-                                </motion.button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                <genre.icon className="w-8 h-8 text-blue-500 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">{genre.title}</h3>
+                <p className="text-sm text-gray-600">{genre.description}</p>
+              </motion.button>
             ))}
-          </AnimatePresence>
+          </div>
+
+          {/* Subgenre Selection */}
+          {primaryGenre && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4">Select Subgenre</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {genres[primaryGenre].variations.map((variation) => (
+                  <motion.button
+                    key={variation.name}
+                    onClick={() => handleSubgenreSelect(variation.name)}
+                    className={`p-4 rounded-xl border ${
+                      subgenre === variation.name
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <h4 className="font-medium mb-1">{variation.name}</h4>
+                    <p className="text-sm text-gray-600">{variation.description}</p>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Genre Blend Selection */}
+          {subgenre && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4">Optional: Select Genre Blend</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {primaryGenre && genres[primaryGenre].blends.map((blend: Subgenre) => (
+                  <motion.button
+                    key={blend.name}
+                    onClick={() => handleBlendSelect(blend.name)}
+                    className={`p-4 rounded-xl border ${
+                      genreBlend === blend.name
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <h4 className="font-medium mb-1">{blend.name}</h4>
+                    <p className="text-sm text-gray-600">{blend.description}</p>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Genre Approach Selection */}
+          {subgenre && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4">Optional: Select Genre Approach</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {primaryGenre && genres[primaryGenre].approaches.map((approach: Subgenre) => (
+                  <motion.button
+                    key={approach.name}
+                    onClick={() => handleApproachSelect(approach.name)}
+                    className={`p-4 rounded-xl border ${
+                      genreApproach === approach.name
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <h4 className="font-medium mb-1">{approach.name}</h4>
+                    <p className="text-sm text-gray-600">{approach.description}</p>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Navigation Buttons */}
           <motion.div
@@ -512,37 +464,32 @@ export default function GenreSelectionPage() {
             className="flex justify-between items-center pt-12"
           >
             <motion.button
-              onClick={() => router.push('/dashboard/novels/create')}
-              className="group flex items-center gap-2 px-8 py-4 rounded-2xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-white/50 dark:bg-gray-800/30 hover:bg-white dark:hover:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300"
-              whileHover={{ x: -5 }}
+              onClick={() => router.push(`/dashboard/novels/create?id=${novelId}`)}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white gap-2 transition-colors duration-200"
             >
-              <ChevronLeft className="w-5 h-5 transition-transform duration-300 group-hover:-translate-x-1" />
+              <ChevronLeft className="w-5 h-5" />
               Back to Setup
             </motion.button>
 
             <motion.button
-              onClick={() => router.push('/dashboard/novels/create/setting')}
-              disabled={!selectedGenre}
-              className={`
-                group flex items-center gap-2 px-8 py-4 rounded-2xl font-medium shadow-lg
-                ${selectedGenre
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white hover:shadow-xl'
-                  : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                }
-                transition-all duration-300
-              `}
-              whileHover={selectedGenre ? { x: 5, scale: 1.02 } : {}}
-              whileTap={selectedGenre ? { scale: 0.98 } : {}}
+              onClick={handleContinue}
+              disabled={!canContinue()}
+              whileHover={{ scale: canContinue() ? 1.02 : 1 }}
+              whileTap={{ scale: canContinue() ? 0.98 : 1 }}
+              className={`inline-flex items-center px-6 py-2 rounded-lg ${
+                canContinue()
+                  ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              } gap-2 transition-colors duration-200`}
             >
               Continue to Setting
-              <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+              <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
-
-  return <DashboardLayout>{content}</DashboardLayout>;
 } 

@@ -26,37 +26,59 @@ const menuItems = [
   {
     title: 'Overview',
     items: [
-      { name: 'Dashboard', icon: LayoutGrid, href: '/dashboard' },
+      { name: 'Dashboard', icon: LayoutGrid, href: '#dashboard' },
     ]
   },
   {
     title: 'Author Tools',
     items: [
-      { name: 'Blog Writer', icon: PenTool, href: '/dashboard/blogs' },
-      { name: 'Story Writer', icon: BookOpen, href: '/dashboard/stories' },
-      { name: 'Novel Workshop', icon: BookMarked, href: '/dashboard/novels' },
-      { name: 'Interactive AI', icon: Brain, href: '/dashboard/interactive' },
+      { name: 'Blog Writer', icon: PenTool, href: '#blogs' },
+      { name: 'Story Writer', icon: BookOpen, href: '#stories' },
+      { name: 'Novel Workshop', icon: BookMarked, href: '#novel-workshop' },
+      { name: 'Interactive AI', icon: Brain, href: '#interactive' },
     ]
   },
   {
     title: 'Community',
     items: [
-      { name: 'Writers Circle', icon: Users, href: '/dashboard/community' },
-      { name: 'Discussions', icon: MessageSquare, href: '/dashboard/discussions' },
+      { name: 'Writing Guide', icon: Sparkles, href: '#writing-guide' },
+      { name: 'Discussions', icon: MessageSquare, href: '#discussions' },
     ]
   },
   {
-    title: 'Settings & Support',
+    title: 'Profile & Settings',
     items: [
-      { name: 'Settings', icon: Settings, href: '/dashboard/settings' },
+      { name: 'Profile', icon: User, href: '#profile' },
+      { name: 'Settings', icon: Settings, href: '#settings' },
     ]
   }
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({ 
+  children,
+  onTabClick
+}: { 
+  children: React.ReactNode;
+  onTabClick?: (href: string) => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [currentHash, setCurrentHash] = useState('');
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Set initial hash
+    setCurrentHash(window.location.hash);
+
+    // Update hash on change
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Prevent unwanted navigation resets
   useEffect(() => {
@@ -87,22 +109,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [pathname, router]);
 
   const isRouteActive = (href: string) => {
-    // Exact match for dashboard home
-    if (href === '/dashboard' && pathname === '/dashboard') {
-      return true;
-    }
-    
-    // For nested routes, check if the current path starts with the href
-    // This ensures routes like /dashboard/novels/create still highlight /dashboard/novels
-    if (href !== '/dashboard') {
-      // Special handling for novel creation workflow
-      if (pathname.startsWith('/dashboard/novels/create') && href === '/dashboard/novels') {
-        return true;
+    // Handle hash-based tabs
+    if (href.startsWith('#')) {
+      // Dashboard is active when there's no hash or #dashboard
+      if (href === '#dashboard') {
+        return !currentHash || currentHash === '#dashboard';
       }
-      return pathname.startsWith(href);
+      // Other tabs are active when their hash matches
+      return currentHash === href;
     }
     
-    return false;
+    // For nested routes (blogs, stories, etc)
+    return pathname.startsWith(href);
+  };
+
+  const handleTabClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    if (href.startsWith('#')) {
+      // For dashboard tab, clear hash if it's already active
+      if (href === '#dashboard' && (currentHash === '#dashboard' || !currentHash)) {
+        window.location.hash = '';
+      } else {
+        window.location.hash = href;
+      }
+      onTabClick?.(href);
+    } else {
+      router.push(href);
+    }
   };
 
   return (
@@ -134,14 +167,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Right Actions */}
           <div className="flex items-center gap-4">
-            <button className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-slate-600 rounded-full" />
-            </button>
-            <button className="flex items-center gap-2 p-2 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200">
-              <User className="w-5 h-5" />
-              <span className="hidden md:inline">Profile</span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-2 p-2 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+              >
+                <User className="w-5 h-5" />
+                <span className="hidden md:inline">Profile</span>
+              </button>
+
+              {/* Profile Menu - Not functional yet */}
+              {isProfileMenuOpen && (
+                <div className="absolute top-full right-0 mt-2 w-56 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700">
+                  <div className="p-2 space-y-1">
+                    <button className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                      View Profile
+                    </button>
+                    <button className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                      Settings
+                    </button>
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-1" />
+                    <button className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -177,14 +229,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
                 <div className="space-y-1">
                   {section.items.map((item) => {
-                    const isActive = isRouteActive(item.href);
                     return (
                       <Link
                         key={item.name}
                         href={item.href}
+                        onClick={(e) => handleTabClick(e, item.href)}
                         className={`
                           group relative flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200
-                          ${isActive 
+                          ${isRouteActive(item.href)
                             ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800' 
                             : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                           }
@@ -193,7 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <div className="transition-transform duration-200 ease-out group-hover:scale-105">
                           <item.icon className={`
                             w-5 h-5
-                            ${isActive 
+                            ${isRouteActive(item.href)
                               ? 'text-slate-900 dark:text-white' 
                               : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white'
                             }
@@ -202,7 +254,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         {!isCollapsed && (
                           <span>{item.name}</span>
                         )}
-                        {isActive && !isCollapsed && (
+                        {isRouteActive(item.href) && !isCollapsed && (
                           <motion.div
                             layoutId="activeTab"
                             className="absolute inset-0 rounded-xl bg-slate-100 dark:bg-slate-800 -z-10"
