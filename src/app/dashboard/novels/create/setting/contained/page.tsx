@@ -183,7 +183,7 @@ export default function ContainedSettingsPage() {
               {settingCategories.map((category, index) => (
                 <motion.button
                   key={category.title}
-                  onClick={() => handleSettingSelect(category.title)}
+                  onClick={() => handleSettingSelect(category.title as ContainedSetting)}
                   onHoverStart={() => setHoveredSetting(category.title)}
                   onHoverEnd={() => setHoveredSetting(null)}
                   initial={{ opacity: 0, y: 20 }}
