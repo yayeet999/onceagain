@@ -5,11 +5,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export type WorkflowStep = 
   | 'basic-info'
   | 'genre'
-  | 'cultural'
+  | 'world-settings'
+  | 'plot-structure'
   | 'characters'
   | 'relationships'
   | 'timeline'
-  | 'parameters';
+  | 'parameters'
+  | 'review';
 
 interface BasicNovelInfo {
   title: string;
