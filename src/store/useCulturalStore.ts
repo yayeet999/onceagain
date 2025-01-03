@@ -1,39 +1,22 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-interface CulturalElement {
-  id: string;
-  type: 'tradition' | 'belief' | 'custom' | 'value';
-  name: string;
-  description: string;
-}
-
 interface CulturalState {
   // Cultural Data
-  elements: CulturalElement[];
-  worldview: string;
-  socialStructure: string;
-  customElements: string[];
+  selectedElements: string[];
   
   // State Management
   isDirty: boolean;
 
   // Actions
-  addElement: (element: CulturalElement) => void;
-  updateElement: (id: string, element: Partial<CulturalElement>) => void;
-  removeElement: (id: string) => void;
-  setWorldview: (worldview: string) => void;
-  setSocialStructure: (structure: string) => void;
-  addCustomElement: (element: string) => void;
-  removeCustomElement: (element: string) => void;
+  toggleElement: (elementId: string) => void;
+  setSelectedElements: (elements: string[]) => void;
   resetCultural: () => void;
+  markClean: () => void;
 }
 
 const initialState = {
-  elements: [],
-  worldview: '',
-  socialStructure: '',
-  customElements: [],
+  selectedElements: [],
   isDirty: false,
 };
 
@@ -42,51 +25,21 @@ export const useCulturalStore = create<CulturalState>()(
     (set, get) => ({
       ...initialState,
 
-      addElement: (element) =>
+      toggleElement: (elementId) =>
         set((state) => ({
-          elements: [...state.elements, element],
+          selectedElements: state.selectedElements.includes(elementId)
+            ? state.selectedElements.filter(id => id !== elementId)
+            : [...state.selectedElements, elementId],
           isDirty: true,
         })),
 
-      updateElement: (id, updatedElement) =>
-        set((state) => ({
-          elements: state.elements.map((element) =>
-            element.id === id
-              ? { ...element, ...updatedElement }
-              : element
-          ),
-          isDirty: true,
-        })),
-
-      removeElement: (id) =>
-        set((state) => ({
-          elements: state.elements.filter((element) => element.id !== id),
-          isDirty: true,
-        })),
-
-      setWorldview: (worldview) =>
+      setSelectedElements: (elements) =>
         set({
-          worldview,
+          selectedElements: elements,
           isDirty: true,
         }),
 
-      setSocialStructure: (structure) =>
-        set({
-          socialStructure: structure,
-          isDirty: true,
-        }),
-
-      addCustomElement: (element) =>
-        set((state) => ({
-          customElements: [...state.customElements, element],
-          isDirty: true,
-        })),
-
-      removeCustomElement: (element) =>
-        set((state) => ({
-          customElements: state.customElements.filter((e) => e !== element),
-          isDirty: true,
-        })),
+      markClean: () => set({ isDirty: false }),
 
       resetCultural: () => set(initialState),
     }),

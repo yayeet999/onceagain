@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Info, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
+import { useCulturalStore } from '@/store/useCulturalStore';
 
 export default function CulturalElementsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const novelId = searchParams.get('id');
-  const [selectedElements, setSelectedElements] = useState<string[]>([]);
+  const selectedElements = useCulturalStore((state) => state.selectedElements);
+  const toggleElement = useCulturalStore((state) => state.toggleElement);
   
   // Redirect if no valid novelId
   useEffect(() => {
@@ -76,14 +78,6 @@ export default function CulturalElementsPage() {
         { id: 'middle-eastern', name: 'Middle Eastern', description: 'Middle Eastern customs and society' }
       ]
     }
-  };
-
-  const toggleElement = (elementId: string) => {
-    setSelectedElements(prev => 
-      prev.includes(elementId)
-        ? prev.filter(id => id !== elementId)
-        : [...prev, elementId]
-    );
   };
 
   const getColorClasses = (category: string, isSelected: boolean) => {

@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNovelStore } from '@/store/useNovelStore';
 import { useGenreStore } from '@/store/useGenreStore';
-import { useCulturalStore } from '@/store/useCulturalStore';
 import { useCharacterStore } from '@/store/useCharacterStore';
 import { useRelationshipStore } from '@/store/useRelationshipStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useParametersStore } from '@/store/useParametersStore';
+import { useCulturalStore } from '@/store/useCulturalStore';
 
 export const useWorkflowNavigation = () => {
   const router = useRouter();
@@ -14,38 +14,38 @@ export const useWorkflowNavigation = () => {
   // Get isDirty state from all stores
   const novelIsDirty = useNovelStore((state) => state.isDirty);
   const genreIsDirty = useGenreStore((state) => state.isDirty);
-  const culturalIsDirty = useCulturalStore((state) => state.isDirty);
   const charactersIsDirty = useCharacterStore((state) => state.isDirty);
   const relationshipsIsDirty = useRelationshipStore((state) => state.isDirty);
   const timelineIsDirty = useTimelineStore((state) => state.isDirty);
   const parametersIsDirty = useParametersStore((state) => state.isDirty);
+  const culturalIsDirty = useCulturalStore((state) => state.isDirty);
 
   // Get reset functions from all stores
   const resetNovel = useNovelStore((state) => state.resetStore);
   const resetGenre = useGenreStore((state) => state.resetGenres);
-  const resetCultural = useCulturalStore((state) => state.resetCultural);
   const resetCharacters = useCharacterStore((state) => state.resetCharacters);
   const resetRelationships = useRelationshipStore((state) => state.resetRelationships);
   const resetTimeline = useTimelineStore((state) => state.resetTimeline);
   const resetParameters = useParametersStore((state) => state.resetParameters);
+  const resetCultural = useCulturalStore((state) => state.resetCultural);
 
   const hasUnsavedChanges = 
     novelIsDirty ||
     genreIsDirty ||
-    culturalIsDirty ||
     charactersIsDirty ||
     relationshipsIsDirty ||
     timelineIsDirty ||
-    parametersIsDirty;
+    parametersIsDirty ||
+    culturalIsDirty;
 
   const resetAllStores = () => {
     resetNovel();
     resetGenre();
-    resetCultural();
     resetCharacters();
     resetRelationships();
     resetTimeline();
     resetParameters();
+    resetCultural();
   };
 
   useEffect(() => {
