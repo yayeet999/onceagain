@@ -107,7 +107,7 @@ export default function SettingTypePage() {
               {settingTypes.map((type, index) => (
                 <motion.button
                   key={type.title}
-                  onClick={() => handleTypeSelect(type.title.toLowerCase())}
+                  onClick={() => handleTypeSelect(type.title.toLowerCase() as 'contained' | 'expansive')}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ 
                     opacity: 1, 
